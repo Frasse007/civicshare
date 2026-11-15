@@ -1,6 +1,10 @@
 import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout.jsx';
 import HomePage from './pages/HomePage.jsx';
+import LoginPage from './pages/LoginPage.jsx';
+import RegisterPage from './pages/RegisterPage.jsx';
+import CatalogPage from './pages/CatalogPage.jsx';
+import ToolDetailPage from './pages/ToolDetailPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
 
 // Route table. Layout renders the shared header/footer around each page via <Outlet/>.
