@@ -10,6 +10,8 @@ export default function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
+        <Route path="catalog" element={<CatalogPage />} />
+        <Route path="tools/:id" element={<ToolDetailPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
         <Route path="*" element={<NotFoundPage />} />
