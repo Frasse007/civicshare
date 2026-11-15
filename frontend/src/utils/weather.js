@@ -52,5 +52,5 @@ export function assessDay({ code, max, min, precipChance, wind }) {
 export function formatDayName(isoDate, index) {
   if (index === 0) return 'Today';
   // Parse as local noon to avoid off-by-one-day shifts from timezone conversion.
-  return new Date(`${isoDate}T12:00:00`).toLocaleDateString(undefined, { weekday: 'short' });
+  return new Date(`${isoDate}T12:00:00`).toLocaleDateString('en-US', { weekday: 'short' });
 }
