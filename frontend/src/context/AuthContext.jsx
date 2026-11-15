@@ -38,6 +38,8 @@ export function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     try {
       await logoutRequest();
+    } catch (error) {
+      console.error('Logout request failed:', error);
     } finally {
       dispatch({ type: AUTH_ACTIONS.LOGGED_OUT });
     }
