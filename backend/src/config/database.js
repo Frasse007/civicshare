@@ -1,8 +1,15 @@
 import { Sequelize } from 'sequelize';
 import { env } from './env.js';
 
-// Use the pooled URL if available, otherwise fall back to direct DATABASE_URL
-const connectionString = env.DATABASE_URL_POOLED || env.DATABASE_URL;
+const connectionString = 
+  env?.DATABASE_URL || 
+  process.env.DATABASE_URL || 
+  process.env.DATABASE_URL_POOLED || 
+  process.env.DATABASE_URL_UNPOOLED;
+
+if (!connectionString || typeof connectionString !== 'string') {
+  throw new Error(`CRITICAL DATABASE ERROR: Connection string is missing or invalid! Received: ${connectionString}`);
+}
 
 export const sequelize = new Sequelize(connectionString, {
   dialect: 'postgres',
