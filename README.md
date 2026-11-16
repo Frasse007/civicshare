@@ -232,6 +232,26 @@ Route → Validation middleware → Controller → Service → Model (Sequelize)
 - **Open-Meteo for weather**, since it needs no API key.
 - **Single Vercel project with two services** (`vercel.json`): `/api/*` routes to the Express backend, everything else to the Vite frontend, making the app same-origin in production.
 
+### Tradeoffs and alternatives considered
+ 
+Each major decision was weighed against at least one realistic alternative. The "cost" column is what this project gives up by its choice.
+ 
+| Decision | Chosen | Alternatives considered | Why this one | Cost |
+|----------|--------|------------------------|--------------|------------------------|
+| Session storage | JWT in an HTTP-only cookie | JWT in `localStorage`; server-side sessions (e.g. `express-session` + store) | Page scripts can't read the cookie, which limits XSS token theft. Stateless, so it works on Vercel serverless with no session store. | Tokens can't be revoked before expiry (mitigated by a short 2-hour lifetime). Cookies need strict CORS and, with a separate origin, CSRF thought (`SameSite` is configurable). |
+| Database | PostgreSQL + Sequelize | MongoDB + Mongoose; SQLite; Prisma | Tool data is relational and filter-heavy (category, status, rating ranges, `ILIKE` search), and Postgres adds `ENUM` and `JSONB` for safety lists. Hosted Postgres (Neon) is free and works with Vercel. | More setup than SQLite. Sequelize is more verbose than Prisma and has weaker type safety. |
+| Schema management | `sequelize.sync()` on boot (`DB_SYNC`) | Versioned migrations (`sequelize-cli`, Prisma Migrate) | Fastest way to iterate during an MVP; seeding and test resets stay simple. | `sync()` doesn't track changes, so evolving a production schema safely will need migrations. |
+| Backend framework | Express 5 | Fastify; NestJS; Next.js API routes | Small and familiar, with a middleware chain that makes validation, auth and RBAC explicit. Deploys to Vercel as-is. | No built-in structure or DI like NestJS, so the layering is enforced by convention (routes, controllers, services). |
+| Validation | Zod schemas in middleware | Joi; hand-written checks; Sequelize validators only | One schema defines and enforces types for bodies, params and queries, with field-level errors the forms can show. | A second source of truth next to the Sequelize models, so rules like category lists must stay in sync (they're imported from the models to limit drift). |
+| Frontend | React SPA built with Vite | Next.js (SSR/SSG); plain HTML/JS | Fast dev server and build. The app is mostly behind interactive filters, so SSR adds little for an MVP. | Public catalog pages aren't server-rendered, which is worse for SEO and first load. |
+| Client state | React Context + `useReducer` | Redux Toolkit; Zustand; React Query | Only two shared concerns (auth, catalog filters), so no extra dependency. Pure reducers are easy to unit test. | No built-in caching or request de-duplication; `useAsyncResource` covers the basics only. |
+| Availability model | A single `status` field set by admins | A `reservations` table with date ranges | Delivers the Sprint 1 core (browse and manage inventory) with the least complexity. | Availability isn't derived from bookings and can't prevent double-booking. Listed under Future Enhancements. |
+| Pagination | Offset/limit (`page`, `pageSize`) | Cursor-based | Simple, supports "jump to page" in the UI, and fine at neighborhood-catalog scale. | Can skip or repeat rows if data changes between requests, and slows on very large tables. |
+| Weather data | Open-Meteo called from the browser | Backend proxy; OpenWeatherMap (API key) | No API key to protect, and no extra backend load or latency. | The browser depends directly on a third party, and we can't cache or rate-limit it centrally. |
+| Safety sheet | Plain-text file generated client-side | PDF generation; server-rendered documents | No dependencies, instant, and prints anywhere. | Plain formatting only. |
+| Hosting | One Vercel project, two services, `/api` rewrite | Vercel (frontend) + Render (backend); separate domains | Same origin in production, so no cross-site cookies or CORS problems, and one deploy on every push to `main`. | Backend runs as serverless functions: cold starts, and a small DB connection pool (max 5) to avoid exhausting connections. |
+| Backend structure | Layered (route, controller, service, model) | Fat controllers; domain-driven modules | Keeps business logic free of HTTP so it can be unit tested without a server. | More files and indirection than the current feature set strictly needs. |
+
 ## Testing
 
 **Framework:** [Vitest](https://vitest.dev/) in both packages, Supertest for backend HTTP tests, and React Testing Library with jsdom for the frontend.
