@@ -1,4 +1,5 @@
 import { Sequelize } from 'sequelize';
+import pg from 'pg';
 import { env } from './env.js';
 
 const connectionString = 
@@ -13,6 +14,7 @@ if (!connectionString || typeof connectionString !== 'string') {
 
 export const sequelize = new Sequelize(connectionString, {
   dialect: 'postgres',
+  dialectModule: pg,
   logging: false,
   // Connection pooling optimized for serverless environments
   pool: { max: 5, min: 0, acquire: 30000, idle: 10000 },
