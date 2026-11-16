@@ -45,3 +45,6 @@ export function createApp({ corsOrigins = env.corsOrigins, authRateLimitMax = 20
   app.use(errorHandler);
   return app;
 }
+
+// Export the default app instance required by Vercel's serverless runtime
+export default createApp();
