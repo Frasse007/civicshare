@@ -2,7 +2,8 @@
 
 **A neighborhood tool & equipment lending library.** Borrow tools from your neighbors instead of buying or renting them.
 
-- **Live app:** https://civicshare.vercel.app/
+- **Vercel:** https://civicshare.vercel.app/
+- **Google Cloud:** https://civicshare-frontend-1047795233199.us-central1.run.app/
 - **Repository:** https://github.com/Frasse007/civicshare
 - **Jira:** https://northpark-team-rop9vwu2.atlassian.net/jira/software/projects/FPC/summary?atlOrigin=eyJpIjoiMTk0NTcyZTUyNjNiNDBmNTk1ODU3MWNhYjcxYjQzOTMiLCJwIjoiaiJ9
 
