@@ -178,6 +178,27 @@ To seed demo data manually: `npm run seed`.
 | `npm run lint` | Lint both apps |
 | `npm run build` | Production build of the frontend |
 
+### Run locally with Docker
+
+Requires Docker Desktop (or Docker Engine with the Compose plugin).
+
+```bash
+docker compose up --build
+```
+
+- Frontend: http://localhost:8080
+- API health: http://localhost:4000/api/health
+- Stop: `Ctrl+C`, then `docker compose down` (add `-v` to also delete database data).
+
+Compose starts PostgreSQL, waits for it to be healthy, then starts the backend (which creates the tables and seeds demo data) and the frontend. The local values in `docker-compose.yml` are for development only.
+
+To build a single image by hand:
+
+```bash
+docker build -t civicshare-backend ./backend
+docker build --build-arg VITE_API_BASE_URL=http://localhost:4000 -t civicshare-frontend ./frontend
+```
+
 ## Usage
 
 1. Open the app and **register** an account (or log in with a demo account).
@@ -373,7 +394,9 @@ All files                |   97.42 |    95.78 |   96.47 |   97.45 |
 
 ## Deployment
 
-The app is deployed on **Vercel**: https://civicshare.vercel.app/
+The app is deployed on **Google Cloud**:https://civicshare-frontend-1047795233199.us-central1.run.app/ & **Vercel**: https://civicshare.vercel.app/
+
+### Vercel Deployment
 
 - `vercel.json` defines two services (`backend` as Express, `frontend` as Vite) and rewrites `/api/*` to the backend and all other paths to the frontend.
 - `backend/src/app.js` exports a default app instance for Vercel's serverless runtime.
