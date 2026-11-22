@@ -1,0 +1,57 @@
+# Run the whole stack locally with:  docker compose up --build
+#   Frontend: http://localhost:8080
+#   API:      http://localhost:4000/api/health
+#   Database: localhost:5432 (user/password/db: civicshare)
+#
+# These values are for LOCAL DEVELOPMENT ONLY.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: civicshare
+      POSTGRES_PASSWORD: civicshare
+      POSTGRES_DB: civicshare
+    volumes:
+      - pgdata:/var/lib/postgresql/data   # data survives container restarts
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U civicshare -d civicshare"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    depends_on:
+      db:
+        condition: service_healthy        # wait until Postgres accepts connections
+    environment:
+      NODE_ENV: development
+      PORT: "4000"
+      DATABASE_URL: postgres://civicshare:civicshare@db:5432/civicshare
+      DATABASE_SSL: "false"
+      JWT_SECRET: ${JWT_SECRET:-local-dev-only-secret-change-me}
+      CORS_ORIGINS: http://localhost:8080
+      COOKIE_SAMESITE: lax
+      DB_SYNC: "true"                     # create tables on boot
+      SEED_ON_BOOT: "true"                # insert demo data into empty tables
+    ports:
+      - "4000:4000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Baked in at build time; the browser calls the API on the host port.
+        VITE_API_BASE_URL: http://localhost:4000
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+volumes:
+  pgdata:

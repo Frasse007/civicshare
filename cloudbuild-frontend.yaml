@@ -1,0 +1,40 @@
+# Cloud Build pipeline: build -> push -> deploy the CivicShare frontend to Cloud Run.
+
+substitutions:
+  _SERVICE_NAME: civicshare-frontend
+  _REGION: us-central1
+  _BACKEND_URL: 'https://REPLACE-WITH-BACKEND-URL'
+
+steps:
+  # 1. Build the frontend image. Vite inlines VITE_API_BASE_URL at build time, so it is passed as a build argument.
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--build-arg'
+      - 'VITE_API_BASE_URL=$_BACKEND_URL'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/$_SERVICE_NAME:$BUILD_ID'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/$_SERVICE_NAME:latest'
+      - './frontend'
+
+  # 2. Push both tags to Container Registry.
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', '--all-tags', 'gcr.io/$PROJECT_ID/$_SERVICE_NAME']
+
+  # 3. Deploy to Cloud Run (nginx listens on port 80).
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - '$_SERVICE_NAME'
+      - '--image=gcr.io/$PROJECT_ID/$_SERVICE_NAME:$BUILD_ID'
+      - '--platform=managed'
+      - '--region=$_REGION'
+      - '--allow-unauthenticated'
+      - '--port=80'
+      - '--memory=256Mi'
+      - '--max-instances=3'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

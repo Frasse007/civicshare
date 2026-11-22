@@ -1,0 +1,13 @@
+# Keep the build context small and never bake secrets into an image
+node_modules
+node_modules
+dist
+coverage
+npm-debug.log
+.env
+.env.*
+.git
+.gitignore
+Dockerfile
+.dockerignore
+*.md
