@@ -178,6 +178,27 @@ To seed demo data manually: `npm run seed`.
 | `npm run lint` | Lint both apps |
 | `npm run build` | Production build of the frontend |
 
+### Run locally with Docker
+
+Requires Docker Desktop (or Docker Engine with the Compose plugin).
+
+```bash
+docker compose up --build
+```
+
+- Frontend: http://localhost:8080
+- API health: http://localhost:4000/api/health
+- Stop: `Ctrl+C`, then `docker compose down` (add `-v` to also delete database data).
+
+Compose starts PostgreSQL, waits for it to be healthy, then starts the backend (which creates the tables and seeds demo data) and the frontend. The local values in `docker-compose.yml` are for development only.
+
+To build a single image by hand:
+
+```bash
+docker build -t civicshare-backend ./backend
+docker build --build-arg VITE_API_BASE_URL=http://localhost:4000 -t civicshare-frontend ./frontend
+```
+
 ## Usage
 
 1. Open the app and **register** an account (or log in with a demo account).
@@ -373,7 +394,9 @@ All files                |   97.42 |    95.78 |   96.47 |   97.45 |
 
 ## Deployment
 
-The app is deployed on **Vercel**: https://civicshare.vercel.app/
+The app is deployed on **Google Cloud**:https://civicshare-frontend-1047795233199.us-central1.run.app/ & **Vercel**: https://civicshare.vercel.app/
+
+### Vercel Deployment
 
 - `vercel.json` defines two services (`backend` as Express, `frontend` as Vite) and rewrites `/api/*` to the backend and all other paths to the frontend.
 - `backend/src/app.js` exports a default app instance for Vercel's serverless runtime.
@@ -414,6 +437,57 @@ The app is deployed on **Vercel**: https://civicshare.vercel.app/
 - **Fixed catalog categories** (Cleaning, Lawn & Garden, Ladders, Woodworking, Power Tools, Painting).
 - No password reset or email verification.
 - Weather depends on a third-party service and shows no data offline.
+
+## AI Usage
+AI assistants were used as pair-programming and learning aids. Every AI output was reviewed, tested and adapted before being committed. This section records which tools were used, for what, and how the results were verified.
+
+### Examples
+
+### Example 1
+![Example1](docs/screenshots/AI_Example1.png)
+I used this provided output as an outline/guide for configuring my Dockerfiles for both the frontend & backend. Combining this with the provided resources from Rize I was able to create solid images that I could deploy to the cloud.
+
+### Example 2
+![Example2](docs/screenshots/AI_Example2.png)
+Throughout a few iterations I got a card style/layout I was satisfied with for my "Catalog Page". I then configured the CSS a bit on my own to really fit my requirements.
+
+### Example 3
+![Example3](docs/screenshots/AI_Example3.png)
+I utilized AI(Gemini's) help to write initial unit tests for various components, functions etc. Once I had the initial tests I wrote additional edge case tests and created some integration tests to ensure a better coverage.
+
+### Example 4
+![Example4](docs/screenshots/AI_Example4.png)
+Initially to set up my repository I utilized both Gemini and Claude to give me an idea of how to organize both frontend/backend. One example prompt I gave Gemini was the one above, that gave me this response: 
+```
+tool-library/
+├── backend/
+│   ├── src/
+│   │   ├── config/
+│   │   │   ├── db.js              # PostgreSQL / Sequelize connection pool & config
+│   │   │   └── env.js               # Validated environment variables (PORT, DB_*, CLIENT_ORIGIN)
+│   │   ├── models/
+│   │   │   ├── index.js             # Model registry & associations
+│   │   │   └── tool.js              # e.g., Tool model (status, safetyRating, pickupStation)
+│   │   ├── routes/
+│   │   │   ├── index.js             # Mounts route modules under /api
+│   │   │   └── tools.routes.js      # HTTP route definitions (GET /api/tools, etc.)
+│   │   ├── controllers/
+│   │   │   └── tools.controller.js  # Parses req/res, delegates to services
+│   │   ├── services/
+│   │   │   └── tools.service.js     # Business logic & DB queries
+│   │   ├── middleware/
+│   │   │   ├── cors.js              # Allows Vite dev server & production origin
+│   │   │   ├── errorHandler.js      # Centralized JSON error responses
+│   │   │   └── validate.js          # Request payload/query validation
+│   │   ├── migrations/              # Database schema migrations
+│   │   ├── seeders/                 # Sample data (e.g., woodworking tools)
+│   │   └── app.js                   # Express/Fastify app setup (exported for tests)
+│   ├── tests/
+│   │   └── tools.test.js
+│   ├── .env.example
+│   ├── Dockerfile
+│   └── package.json
+```
 
 ## Future Enhancements
 
